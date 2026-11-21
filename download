@@ -1,0 +1,13 @@
+node_modules
+.next
+src
+public
+.env
+drizzle.config.json
+eslint.config.mjs
+next.config.ts
+postcss.config.mjs
+tsconfig.json
+package.json
+package-lock.json
+next-env.d.ts
