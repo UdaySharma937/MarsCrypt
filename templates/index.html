@@ -62,76 +62,170 @@
     .panel.show { animation: panelIn .28s ease both; }
     @keyframes panelIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-    /* ===== Header actions + theme toggle ===== */
-    .header-actions { display: flex; align-items: center; gap: 6px; }
-    .theme-btn .i-sun { display: none; }
-    html[data-theme="light"] .theme-btn .i-sun { display: block; }
-    html[data-theme="light"] .theme-btn .i-moon { display: none; }
+    /* ===== Header actions ===== */
+    .header-actions { display: flex; align-items: center; gap: 10px; }
 
-    /* ===== Light theme overrides ===== */
-    html[data-theme="light"] { color-scheme: light; }
+    /* ===== Modern theme switch ===== */
+    .theme-switch {
+      position: relative; width: 62px; height: 32px; flex: none; padding: 0; border: 0;
+      border-radius: 999px; cursor: pointer; background: transparent;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .theme-switch:focus-visible { outline: 2px solid var(--accent, #ff5a36); outline-offset: 3px; }
+    .ts-track {
+      position: absolute; inset: 0; border-radius: inherit; overflow: hidden;
+      background: linear-gradient(135deg, #1b1740, #3d2c80);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.14);
+      transition: background .45s ease, box-shadow .45s ease;
+    }
+    .ts-stars {
+      position: absolute; inset: 0; transition: opacity .4s, transform .45s;
+      background:
+        radial-gradient(1.6px 1.6px at 62% 28%, #fff, transparent),
+        radial-gradient(1px 1px at 74% 68%, #fff, transparent),
+        radial-gradient(1.3px 1.3px at 50% 55%, #fff, transparent),
+        radial-gradient(1px 1px at 86% 34%, #fff, transparent),
+        radial-gradient(1px 1px at 40% 24%, #fff, transparent);
+    }
+    .ts-cloud {
+      position: absolute; inset: 0; opacity: 0; transform: translateX(10px);
+      transition: opacity .4s, transform .45s;
+      background:
+        radial-gradient(circle at 70% 78%, rgba(255,255,255,.95) 0 6px, transparent 7px),
+        radial-gradient(circle at 82% 70%, rgba(255,255,255,.95) 0 5px, transparent 6px),
+        radial-gradient(circle at 58% 84%, rgba(255,255,255,.85) 0 4px, transparent 5px);
+    }
+    .ts-knob {
+      position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%;
+      display: grid; place-items: center; color: #3d2c80;
+      background: linear-gradient(145deg, #f6f3ff, #c6bdf0);
+      box-shadow: 0 2px 8px rgba(0,0,0,.45), 0 0 10px rgba(160,140,255,.35);
+      transition: transform .45s cubic-bezier(.68,-.35,.27,1.35), background .4s, color .4s, box-shadow .4s;
+    }
+    .ts-knob svg { position: absolute; transition: opacity .3s, transform .5s; }
+    .ts-sun { opacity: 0; transform: rotate(-90deg) scale(.4); }
+
+    html[data-theme="light"] .ts-track {
+      background: linear-gradient(135deg, #5db7ff, #ffd98a);
+      box-shadow: inset 0 2px 6px rgba(20,60,120,.25), 0 0 0 1px rgba(20,10,50,.12);
+    }
+    html[data-theme="light"] .ts-stars { opacity: 0; transform: translateX(-10px); }
+    html[data-theme="light"] .ts-cloud { opacity: 1; transform: none; }
+    html[data-theme="light"] .ts-knob {
+      transform: translateX(30px); color: #fff;
+      background: linear-gradient(145deg, #ffe566, #ff9a1f);
+      box-shadow: 0 2px 8px rgba(160,90,0,.45), 0 0 14px rgba(255,170,40,.6);
+    }
+    html[data-theme="light"] .ts-moon { opacity: 0; transform: rotate(90deg) scale(.4); }
+    html[data-theme="light"] .ts-sun { opacity: 1; transform: none; }
+
+    /* ===== Light theme (explicit, high-contrast) ===== */
+    html[data-theme="light"] { color-scheme: light; --l-text: #17132b; --l-muted: #5a5575; --l-accent: #e03e1a; }
     html[data-theme="dark"] { color-scheme: dark; }
-    html[data-theme="light"] body {
-      background: #f5f3fa !important;
-      color: #1b1730 !important;
-    }
-    html[data-theme="light"] .site-header {
-      background: rgba(255, 255, 255, .85) !important;
-      border-color: rgba(20, 10, 50, .1) !important;
-    }
+
+    html[data-theme="light"] body { background: #f4f2fa !important; color: var(--l-text) !important; }
+    html[data-theme="light"] body::before,
+    html[data-theme="light"] body::after { opacity: .35 !important; }
+
+    /* surfaces */
+    html[data-theme="light"] .site-header { background: rgba(255,255,255,.88) !important; border-color: rgba(20,10,50,.1) !important; }
     html[data-theme="light"] .card,
     html[data-theme="light"] .how-item,
     html[data-theme="light"] .menu-popup,
     html[data-theme="light"] .result {
-      background: #ffffff !important;
-      border-color: rgba(20, 10, 50, .1) !important;
-      color: #1b1730 !important;
-      box-shadow: 0 8px 30px rgba(40, 20, 90, .08);
+      background: #fff !important; border-color: rgba(20,10,50,.1) !important;
+      box-shadow: 0 8px 30px rgba(40,20,90,.08) !important;
     }
+    html[data-theme="light"] .tabs { background: rgba(20,10,50,.06) !important; border-color: rgba(20,10,50,.1) !important; }
+    html[data-theme="light"] .backdrop.open { background: rgba(244,242,250,.55) !important; }
+    html[data-theme="light"] .menu-divider { background: rgba(20,10,50,.1) !important; }
+    html[data-theme="light"] .menu-link:hover { background: rgba(20,10,50,.05) !important; }
+
+    /* text: main */
     html[data-theme="light"] h1,
     html[data-theme="light"] h2,
     html[data-theme="light"] h3,
     html[data-theme="light"] label,
     html[data-theme="light"] .field-label,
+    html[data-theme="light"] strong,
     html[data-theme="light"] .brand,
     html[data-theme="light"] .brand-text,
-    html[data-theme="light"] .menu-link,
     html[data-theme="light"] .menu-head,
+    html[data-theme="light"] .menu-head span,
+    html[data-theme="light"] .menu-link,
+    html[data-theme="light"] .menu-link > span,
+    html[data-theme="light"] .menu-close,
     html[data-theme="light"] .icon-btn,
-    html[data-theme="light"] .result-title { color: #1b1730 !important; }
+    html[data-theme="light"] .result-title,
+    html[data-theme="light"] .dz-name,
+    html[data-theme="light"] .tab-btn { color: var(--l-text) !important; }
+
+    /* text: muted */
     html[data-theme="light"] p,
     html[data-theme="light"] small,
     html[data-theme="light"] .hint,
-    html[data-theme="light"] .site-footer,
     html[data-theme="light"] .dz-empty,
-    html[data-theme="light"] .menu-link small { color: #5b5675 !important; }
+    html[data-theme="light"] .dz-empty span,
+    html[data-theme="light"] .menu-link small,
+    html[data-theme="light"] .site-footer,
+    html[data-theme="light"] .toggle { color: var(--l-muted) !important; }
+    html[data-theme="light"] .dz-empty strong { color: var(--l-accent) !important; }
+
+    /* accents */
+    html[data-theme="light"] .brand-text span { color: var(--l-accent) !important; }
+    html[data-theme="light"] .brand-logo { color: #fff !important; }
+    html[data-theme="light"] .site-footer a { color: var(--l-accent) !important; }
+    html[data-theme="light"] .grad {
+      background: linear-gradient(135deg, #e8431f, #b4156b) !important;
+      -webkit-background-clip: text !important; background-clip: text !important;
+      color: transparent !important; -webkit-text-fill-color: transparent !important;
+    }
+    html[data-theme="light"] .pill {
+      background: rgba(224,62,26,.1) !important; color: #b8341a !important;
+      border: 1px solid rgba(224,62,26,.3) !important;
+    }
+    html[data-theme="light"] .step {
+      background: rgba(224,62,26,.1) !important; color: var(--l-accent) !important;
+      -webkit-text-fill-color: var(--l-accent) !important;
+    }
+
+    /* form controls */
     html[data-theme="light"] .input,
     html[data-theme="light"] .textarea,
     html[data-theme="light"] .secret-box {
-      background: #f1eef9 !important;
-      color: #1b1730 !important;
-      border-color: rgba(20, 10, 50, .16) !important;
+      background: #f1eef9 !important; color: var(--l-text) !important;
+      border: 1px solid rgba(20,10,50,.16) !important;
     }
+    html[data-theme="light"] .input::placeholder,
+    html[data-theme="light"] .textarea::placeholder { color: #8b86a6 !important; opacity: 1; }
     html[data-theme="light"] .dropzone {
-      background: #f7f5fc !important;
-      border-color: rgba(20, 10, 50, .22) !important;
-      color: #1b1730 !important;
+      background: #f7f5fc !important; border-color: rgba(20,10,50,.22) !important;
+    }
+    html[data-theme="light"] .dropzone.drag { border-color: var(--l-accent) !important; background: rgba(224,62,26,.06) !important; }
+
+    /* buttons */
+    html[data-theme="light"] .btn.primary,
+    html[data-theme="light"] .btn.primary * {
+      color: #fff !important; -webkit-text-fill-color: #fff !important;
+    }
+    html[data-theme="light"] .btn.primary {
+      background: linear-gradient(135deg, #ff5a36, #c2255c) !important; border: 0 !important;
     }
     html[data-theme="light"] .btn.ghost {
-      background: transparent !important;
-      color: #1b1730 !important;
-      border: 1px solid rgba(20, 10, 50, .22) !important;
+      background: transparent !important; color: var(--l-text) !important;
+      border: 1px solid rgba(20,10,50,.24) !important;
     }
-    html[data-theme="light"] .toggle { color: #5b5675 !important; }
-    html[data-theme="light"] .pill {
-      background: rgba(255, 90, 54, .1) !important;
-      color: #b8391b !important;
-      border-color: rgba(255, 90, 54, .3) !important;
+    html[data-theme="light"] .tab-btn[aria-selected="true"],
+    html[data-theme="light"] .tab-btn[aria-selected="true"] * {
+      color: #fff !important; -webkit-text-fill-color: #fff !important;
     }
-    html[data-theme="light"] .menu-link:hover { background: rgba(20, 10, 50, .05) !important; }
-    html[data-theme="light"] .menu-divider { background: rgba(20, 10, 50, .1) !important; }
-    html[data-theme="light"] .backdrop.open { background: rgba(255, 255, 255, .45) !important; }
-    html[data-theme="light"] .site-footer a { color: #b8391b !important; }
+    html[data-theme="light"] .icon-btn { background: rgba(20,10,50,.05) !important; }
+
+    /* alerts */
+    html[data-theme="light"] .alert { background: #fee4e2 !important; color: #b42318 !important; border: 1px solid #fda29b !important; }
+    html[data-theme="light"] .alert.success,
+    html[data-theme="light"] .alert.ok { background: #dcfae6 !important; color: #067647 !important; border-color: #75e0a7 !important; }
+
   </style>
 </head>
 <body id="top">
@@ -151,11 +245,12 @@
       </a>
 
       <div class="header-actions">
-        <button class="icon-btn theme-btn" id="themeBtn" type="button" aria-label="Switch to light mode" title="Toggle dark / light mode">
-          <!-- moon (shown in dark mode) -->
-          <svg class="i-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
-          <!-- sun (shown in light mode) -->
-          <svg class="i-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <button class="theme-switch" id="themeBtn" type="button" role="switch" aria-checked="false" aria-label="Light mode" title="Toggle dark / light mode">
+          <span class="ts-track" aria-hidden="true"><span class="ts-stars"></span><span class="ts-cloud"></span></span>
+          <span class="ts-knob" aria-hidden="true">
+            <svg class="ts-moon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+            <svg class="ts-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          </span>
         </button>
 
         <a class="icon-btn" href="https://github.com/UdaySharma937" target="_blank" rel="noopener noreferrer" aria-label="UdaySharma937 on GitHub" title="GitHub">
@@ -331,7 +426,7 @@
       function applyTheme(theme, save) {
         root.setAttribute("data-theme", theme);
         themeMeta.setAttribute("content", theme === "light" ? "#f5f3fa" : "#0a090d");
-        themeBtn.setAttribute("aria-label", theme === "light" ? "Switch to dark mode" : "Switch to light mode");
+        themeBtn.setAttribute("aria-checked", String(theme === "light"));
         if (save) { try { localStorage.setItem("marscrypt-theme", theme); } catch (_) {} }
       }
       applyTheme(root.getAttribute("data-theme") === "light" ? "light" : "dark", false);
