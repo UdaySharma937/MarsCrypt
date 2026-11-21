@@ -206,6 +206,22 @@ export default function MarsCrypt() {
 
   return (
     <>
+      {/* Side-by-side layout: Encrypt on the left, Decrypt on the right */}
+      <style>{`
+        .container.wide { max-width: 1200px; }
+        .split {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          align-items: start;
+          width: 100%;
+        }
+        .split > .card { min-width: 0; margin: 0; }
+        @media (max-width: 900px) {
+          .split { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
       {/* Header */}
       <header className="site-header">
         <div className="container header-inner">
@@ -259,87 +275,87 @@ export default function MarsCrypt() {
           <p>Encrypt a message with your password, then bury it inside an ordinary picture. Nothing is stored on the server.</p>
         </section>
 
-        <div className="container stack">
-          {/* Section 1 – Encrypt */}
-          <section className="card" id="encrypt">
-            <div className="card-head">
-              <span className="step">01</span>
-              <div>
-                <h2>Encrypt &amp; Hide</h2>
-                <p>Upload an image, add a password and your secret message.</p>
-              </div>
-            </div>
-
-            <form className="form" onSubmit={handleEncrypt} noValidate>
-              <div>
-                <span className="field-label">Cover image</span>
-                <Dropzone file={encFile} onFile={setEncFile} hint="PNG, JPG, BMP or WEBP · up to 4 MB" previewAlt="Selected cover image preview" />
+        <div className="container wide">
+          <div className="split">
+            {/* Left – Encrypt */}
+            <section className="card" id="encrypt">
+              <div className="card-head">
+                <span className="step">01</span>
+                <div>
+                  <h2>Encrypt &amp; Hide</h2>
+                  <p>Upload an image, add a password and your secret message.</p>
+                </div>
               </div>
 
-              <PasswordField id="encPass" label="Password" value={encPass} onChange={setEncPass} placeholder="At least 6 characters" autoComplete="new-password" />
+              <form className="form" onSubmit={handleEncrypt} noValidate>
+                <div>
+                  <span className="field-label">Cover image</span>
+                  <Dropzone file={encFile} onFile={setEncFile} hint="PNG, JPG, BMP or WEBP · up to 4 MB" previewAlt="Selected cover image preview" />
+                </div>
 
-              <div className="field">
-                <label htmlFor="encMsg">Secret message</label>
-                <textarea
-                  className="textarea"
-                  id="encMsg"
-                  value={encMsg}
-                  maxLength={5000}
-                  onChange={(e) => setEncMsg(e.target.value)}
-                  placeholder="Type the message you want to hide…"
-                />
-                <small className="hint">{encMsg.length} / 5000</small>
+                <PasswordField id="encPass" label="Password" value={encPass} onChange={setEncPass} placeholder="At least 6 characters" autoComplete="new-password" />
+
+                <div className="field">
+                  <label htmlFor="encMsg">Secret message</label>
+                  <textarea
+                    className="textarea"
+                    id="encMsg"
+                    value={encMsg}
+                    maxLength={5000}
+                    onChange={(e) => setEncMsg(e.target.value)}
+                    placeholder="Type the message you want to hide…"
+                  />
+                  <small className="hint">{encMsg.length} / 5000</small>
+                </div>
+
+                <SubmitButton loading={encBusy} idle="Encrypt & Hide" busy="Encrypting…" />
+                {encError && <div className="alert error" role="alert">{encError}</div>}
+              </form>
+
+              {encUrl && (
+                <div className="result" ref={encResultRef}>
+                  <p className="result-title">✔ Your stego image is ready</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={encUrl} alt="Generated stego image" />
+                  <a className="btn ghost" href={encUrl} download="marscrypt_stego.png">⬇ Download PNG</a>
+                  <small className="hint" style={{ textAlign: "left" }}>
+                    Share it as a file. Messengers that re-compress images will destroy the hidden data.
+                  </small>
+                </div>
+              )}
+            </section>
+
+            {/* Right – Decrypt */}
+            <section className="card" id="decrypt">
+              <div className="card-head">
+                <span className="step">02</span>
+                <div>
+                  <h2>Extract &amp; Decrypt</h2>
+                  <p>Upload a stego image and enter the password to reveal the message.</p>
+                </div>
               </div>
 
-              <SubmitButton loading={encBusy} idle="Encrypt & Hide" busy="Encrypting…" />
-              {encError && <div className="alert error" role="alert">{encError}</div>}
-            </form>
+              <form className="form" onSubmit={handleDecrypt} noValidate>
+                <div>
+                  <span className="field-label">Stego image</span>
+                  <Dropzone file={decFile} onFile={setDecFile} hint="The PNG created by MarsCrypt" previewAlt="Selected stego image preview" />
+                </div>
 
-            {encUrl && (
-              <div className="result" ref={encResultRef}>
-                <p className="result-title">✔ Your stego image is ready</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={encUrl} alt="Generated stego image" />
-                <a className="btn ghost" href={encUrl} download="marscrypt_stego.png">⬇ Download PNG</a>
-                <small className="hint" style={{ textAlign: "left" }}>
-                  Share it as a file. Messengers that re-compress images will destroy the hidden data.
-                </small>
-              </div>
-            )}
-          </section>
+                <PasswordField id="decPass" label="Password" value={decPass} onChange={setDecPass} placeholder="The password used to encrypt" autoComplete="current-password" />
 
-          <div className="cascade-arrow" aria-hidden="true"><span>↓</span></div>
+                <SubmitButton loading={decBusy} idle="Extract & Decrypt" busy="Decrypting…" />
+                {decError && <div className="alert error" role="alert">{decError}</div>}
+              </form>
 
-          {/* Section 2 – Decrypt */}
-          <section className="card" id="decrypt">
-            <div className="card-head">
-              <span className="step">02</span>
-              <div>
-                <h2>Extract &amp; Decrypt</h2>
-                <p>Upload a stego image and enter the password to reveal the message.</p>
-              </div>
-            </div>
-
-            <form className="form" onSubmit={handleDecrypt} noValidate>
-              <div>
-                <span className="field-label">Stego image</span>
-                <Dropzone file={decFile} onFile={setDecFile} hint="The PNG created by MarsCrypt" previewAlt="Selected stego image preview" />
-              </div>
-
-              <PasswordField id="decPass" label="Password" value={decPass} onChange={setDecPass} placeholder="The password used to encrypt" autoComplete="current-password" />
-
-              <SubmitButton loading={decBusy} idle="Extract & Decrypt" busy="Decrypting…" />
-              {decError && <div className="alert error" role="alert">{decError}</div>}
-            </form>
-
-            {decMessage !== null && (
-              <div className="result" ref={decResultRef}>
-                <p className="result-title">✔ Message decrypted</p>
-                <pre className="secret-box">{decMessage}</pre>
-                <button className="btn ghost" type="button" onClick={copyMessage}>{copied ? "Copied ✔" : "Copy message"}</button>
-              </div>
-            )}
-          </section>
+              {decMessage !== null && (
+                <div className="result" ref={decResultRef}>
+                  <p className="result-title">✔ Message decrypted</p>
+                  <pre className="secret-box">{decMessage}</pre>
+                  <button className="btn ghost" type="button" onClick={copyMessage}>{copied ? "Copied ✔" : "Copy message"}</button>
+                </div>
+              )}
+            </section>
+          </div>
         </div>
 
         <section className="container how" id="how">
