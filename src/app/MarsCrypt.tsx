@@ -1,376 +1,201 @@
-"use client";
+/* MarsCrypt UI — self-contained styles (all classes prefixed with "mc-") */
 
-import { useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
-import { encryptAndHide, extractAndDecrypt } from "@/lib/stego";
+.mc-root {
+  --bg: #0a0710;
+  --panel: #141019;
+  --panel-2: #1b1524;
+  --line: rgba(255, 255, 255, 0.09);
+  --text: #f4effb;
+  --muted: #a99dbb;
+  --ok: #3ddc97;
+  --err: #ff6b7a;
+  --radius: 20px;
 
-const GITHUB = "https://github.com/UdaySharma937";
+  min-height: 100vh;
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  background:
+    radial-gradient(900px 500px at 12% -5%, rgba(255, 107, 61, 0.16), transparent 60%),
+    radial-gradient(800px 500px at 95% 0%, rgba(56, 189, 248, 0.13), transparent 60%),
+    var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+.mc-root *, .mc-root *::before, .mc-root *::after { box-sizing: border-box; }
+.mc-root a { color: inherit; }
 
-/* ---------- Small presentational pieces ---------- */
+.mc-sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.mc-wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
-function UploadIcon() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 16V4m0 0L7 9m5-5 5 5" />
-      <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
-    </svg>
-  );
+/* ---------- Header ---------- */
+.mc-header {
+  position: sticky; top: 0; z-index: 30;
+  background: rgba(10, 7, 16, 0.72);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.mc-header-in { height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mc-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.01em; }
+.mc-brand-logo {
+  width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, #ff6b3d, #ffb347);
+  box-shadow: 0 6px 20px rgba(255, 107, 61, 0.35);
+}
+.mc-brand b { font-weight: 800; background: linear-gradient(90deg, #ff6b3d, #ffb347); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mc-nav { display: flex; align-items: center; gap: 6px; }
+.mc-nav a {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 42px; padding: 0 14px; border-radius: 12px; text-decoration: none;
+  color: var(--muted); font-size: 0.95rem; font-weight: 600; transition: background 0.2s, color 0.2s;
+}
+.mc-nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.07); }
+
+/* ---------- Hero ---------- */
+.mc-hero { text-align: center; padding: 40px 0 22px; }
+.mc-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04);
+  color: var(--muted); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em;
+}
+.mc-pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+.mc-hero h1 { margin: 16px 0 10px; font-size: clamp(2rem, 6.5vw, 3.4rem); line-height: 1.08; letter-spacing: -0.03em; }
+.mc-grad { background: linear-gradient(90deg, #ff6b3d, #ffb347 45%, #38bdf8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mc-hero p { margin: 0 auto; max-width: 540px; color: var(--muted); font-size: 1.02rem; }
+
+/* ---------- Mobile tab switch ---------- */
+.mc-tabs-bar {
+  position: sticky; top: 60px; z-index: 20; padding: 10px 0; display: none;
+  background: linear-gradient(var(--bg) 70%, transparent);
+}
+.mc-tabs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+}
+.mc-tab {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; border: 0; border-radius: 12px; cursor: pointer;
+  background: transparent; color: var(--muted); font: inherit; font-weight: 700; font-size: 0.95rem;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+.mc-tab:active { transform: scale(0.98); }
+.mc-tab[aria-selected="true"] { color: #fff; background: linear-gradient(135deg, var(--tc), var(--tc2)); box-shadow: 0 6px 18px var(--ts); }
+.mc-tab.enc { --tc: #ff6b3d; --tc2: #ff9a3d; --ts: rgba(255, 107, 61, 0.35); }
+.mc-tab.dec { --tc: #0ea5e9; --tc2: #6366f1; --ts: rgba(56, 130, 248, 0.35); }
+
+/* ---------- Two boxes ---------- */
+.mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; padding-bottom: 20px; }
+
+.mc-panel {
+  --c: #ff6b3d; --c2: #ffb347; --cs: rgba(255, 107, 61, 0.3);
+  position: relative; scroll-margin-top: 130px;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 22px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.mc-panel::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--c), var(--c2));
+}
+.mc-panel.dec { --c: #0ea5e9; --c2: #6366f1; --cs: rgba(56, 130, 248, 0.3); }
+
+.mc-panel-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.mc-badge {
+  flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--c), var(--c2)); box-shadow: 0 8px 22px var(--cs);
+}
+.mc-panel-head h2 { margin: 0; font-size: 1.25rem; letter-spacing: -0.01em; }
+.mc-panel-head p { margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.mc-form { display: flex; flex-direction: column; gap: 16px; }
+.mc-label { display: block; margin-bottom: 7px; font-size: 0.85rem; font-weight: 700; color: #d9cfe8; }
+.mc-hint { display: block; margin-top: 6px; color: var(--muted); font-size: 0.78rem; text-align: right; }
+
+/* Dropzone */
+.mc-drop {
+  display: flex; align-items: center; justify-content: center; min-height: 170px; padding: 16px;
+  border: 2px dashed rgba(255, 255, 255, 0.18); border-radius: 16px; cursor: pointer; text-align: center;
+  background: rgba(255, 255, 255, 0.025); transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.mc-drop:hover, .mc-drop.drag, .mc-drop:focus-within { border-color: var(--c); background: rgba(255, 255, 255, 0.05); }
+.mc-drop.drag { transform: scale(1.01); }
+.mc-drop-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 0.92rem; }
+.mc-drop-empty svg { color: var(--c); }
+.mc-drop-empty strong { color: var(--text); }
+.mc-drop-empty small { font-size: 0.78rem; opacity: 0.85; }
+.mc-preview { display: block; max-width: 100%; max-height: 220px; margin: 0 auto; border-radius: 12px; object-fit: contain; }
+.mc-fname { margin-top: 10px; color: var(--muted); font-size: 0.8rem; word-break: break-all; }
+
+/* Inputs */
+.mc-input-wrap { position: relative; }
+.mc-input, .mc-textarea {
+  width: 100%; border-radius: 14px; border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.3); color: var(--text); font: inherit; font-size: 16px; /* 16px stops iOS zoom */
+  padding: 13px 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mc-input { min-height: 50px; padding-right: 74px; }
+.mc-textarea { min-height: 130px; resize: vertical; }
+.mc-input::placeholder, .mc-textarea::placeholder { color: #6f6580; }
+.mc-input:focus, .mc-textarea:focus { border-color: var(--c); box-shadow: 0 0 0 4px var(--cs); }
+.mc-toggle {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  min-height: 38px; padding: 0 12px; border: 0; border-radius: 10px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); color: var(--text); font: inherit; font-size: 0.82rem; font-weight: 700;
 }
 
-function GithubIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5Z" />
-    </svg>
-  );
+/* Buttons */
+.mc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 52px; padding: 0 20px; border: 0; border-radius: 14px; cursor: pointer;
+  font: inherit; font-size: 1rem; font-weight: 700; text-decoration: none; color: #fff;
+  transition: transform 0.1s, filter 0.2s, opacity 0.2s;
+}
+.mc-btn:hover { filter: brightness(1.08); }
+.mc-btn:active { transform: scale(0.985); }
+.mc-btn:disabled { opacity: 0.7; cursor: progress; }
+.mc-btn.primary { background: linear-gradient(135deg, var(--c), var(--c2)); box-shadow: 0 10px 26px var(--cs); }
+.mc-btn.ghost { background: rgba(255, 255, 255, 0.07); border: 1px solid var(--line); color: var(--text); }
+.mc-spin { display: none; width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.35); border-top-color: #fff; animation: mc-rot 0.7s linear infinite; }
+.mc-btn.loading .mc-spin { display: inline-block; }
+@keyframes mc-rot { to { transform: rotate(360deg); } }
+
+/* Alerts & results */
+.mc-alert { padding: 12px 14px; border-radius: 12px; font-size: 0.9rem; border: 1px solid rgba(255, 107, 122, 0.4); background: rgba(255, 107, 122, 0.1); color: #ffc2c9; }
+.mc-result { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; animation: mc-in 0.35s ease; }
+@keyframes mc-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.mc-result-title { margin: 0; color: var(--ok); font-weight: 700; }
+.mc-result img { max-width: 100%; border-radius: 14px; border: 1px solid var(--line); }
+.mc-note { color: var(--muted); font-size: 0.8rem; }
+.mc-secret {
+  margin: 0; padding: 14px; border-radius: 14px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line);
+  font: 0.95rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word;
+  max-height: 320px; overflow: auto;
 }
 
-/** Drag & drop / click image picker with live preview. */
-function Dropzone({
-  file,
-  onFile,
-  hint,
-  previewAlt,
-}: {
-  file: File | null;
-  onFile: (f: File | null) => void;
-  hint: string;
-  previewAlt: string;
-}) {
-  const [drag, setDrag] = useState(false);
-  const [url, setUrl] = useState<string | null>(null);
+/* ---------- How it works ---------- */
+.mc-how { padding: 40px 0 28px; }
+.mc-how h2 { margin: 0 0 18px; text-align: center; font-size: 1.5rem; letter-spacing: -0.02em; }
+.mc-how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.mc-how-item { padding: 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+.mc-how-item h3 { margin: 0 0 6px; font-size: 1rem; }
+.mc-how-item p { margin: 0; color: var(--muted); font-size: 0.9rem; }
 
-  useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
-    const u = URL.createObjectURL(file);
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [file]);
+.mc-footer { padding: 26px 16px 34px; text-align: center; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--line); }
+.mc-footer a { color: var(--text); font-weight: 600; }
 
-  const onDrop = (e: DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    setDrag(false);
-    const f = e.dataTransfer.files?.[0];
-    if (f) onFile(f);
-  };
-
-  return (
-    <label
-      className={"dropzone" + (drag ? " drag" : "")}
-      onDragEnter={(e) => { e.preventDefault(); setDrag(true); }}
-      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-      onDragLeave={(e) => { e.preventDefault(); setDrag(false); }}
-      onDrop={onDrop}
-    >
-      <input
-        className="sr-only"
-        type="file"
-        accept="image/png,image/jpeg,image/bmp,image/webp"
-        onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-      />
-      {file && url ? (
-        <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="dz-preview" src={url} alt={previewAlt} />
-          <div className="dz-name">{file.name} · {(file.size / 1024).toFixed(0)} KB</div>
-        </div>
-      ) : (
-        <div className="dz-empty">
-          <UploadIcon />
-          <span><strong>Click to upload</strong> or drag &amp; drop</span>
-          <small>{hint}</small>
-        </div>
-      )}
-    </label>
-  );
+/* ---------- Responsive ---------- */
+@media (max-width: 859px) {
+  .mc-tabs-bar { display: block; }
+  .mc-grid { grid-template-columns: 1fr; gap: 0; }
+  .mc-panel { display: none; padding: 18px; }
+  .mc-panel.active { display: block; animation: mc-in 0.3s ease; }
+  .mc-hero { padding: 26px 0 8px; }
+  .mc-how-grid { grid-template-columns: 1fr; }
+  .mc-nav .mc-nav-text { display: none; }
 }
-
-function PasswordField({
-  id, label, value, onChange, placeholder, autoComplete,
-}: {
-  id: string; label: string; value: string; onChange: (v: string) => void;
-  placeholder: string; autoComplete: string;
-}) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
-      <div className="input-wrap">
-        <input
-          className="input"
-          id={id}
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-        />
-        <button className="toggle" type="button" onClick={() => setShow((s) => !s)}>
-          {show ? "Hide" : "Show"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SubmitButton({ loading, idle, busy }: { loading: boolean; idle: string; busy: string }) {
-  return (
-    <button className={"btn primary" + (loading ? " loading" : "")} type="submit" disabled={loading}>
-      <span className="spinner" />
-      <span className="label">{loading ? busy : idle}</span>
-    </button>
-  );
-}
-
-/* ---------- Main page component ---------- */
-
-export default function MarsCrypt() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // Encrypt state
-  const [encFile, setEncFile] = useState<File | null>(null);
-  const [encPass, setEncPass] = useState("");
-  const [encMsg, setEncMsg] = useState("");
-  const [encBusy, setEncBusy] = useState(false);
-  const [encError, setEncError] = useState("");
-  const [encUrl, setEncUrl] = useState<string | null>(null);
-  const encResultRef = useRef<HTMLDivElement>(null);
-
-  // Decrypt state
-  const [decFile, setDecFile] = useState<File | null>(null);
-  const [decPass, setDecPass] = useState("");
-  const [decBusy, setDecBusy] = useState(false);
-  const [decError, setDecError] = useState("");
-  const [decMessage, setDecMessage] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const decResultRef = useRef<HTMLDivElement>(null);
-
-  // Close the menu with Escape and lock page scroll while it is open.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => document.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
-
-  // Free generated object URLs.
-  useEffect(() => () => { if (encUrl) URL.revokeObjectURL(encUrl); }, [encUrl]);
-
-  const handleEncrypt = async (e: FormEvent) => {
-    e.preventDefault();
-    setEncError("");
-    setEncUrl(null);
-    if (!encFile) return setEncError("Please choose an image first.");
-    setEncBusy(true);
-    try {
-      const blob = await encryptAndHide(encFile, encPass, encMsg);
-      setEncUrl(URL.createObjectURL(blob));
-      setTimeout(() => encResultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
-    } catch (err) {
-      setEncError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setEncBusy(false);
-    }
-  };
-
-  const handleDecrypt = async (e: FormEvent) => {
-    e.preventDefault();
-    setDecError("");
-    setDecMessage(null);
-    if (!decFile) return setDecError("Please choose a stego image first.");
-    setDecBusy(true);
-    try {
-      setDecMessage(await extractAndDecrypt(decFile, decPass));
-      setTimeout(() => decResultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
-    } catch (err) {
-      setDecError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setDecBusy(false);
-    }
-  };
-
-  const copyMessage = async () => {
-    if (decMessage == null) return;
-    try {
-      await navigator.clipboard.writeText(decMessage);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable */
-    }
-  };
-
-  const close = () => setMenuOpen(false);
-
-  return (
-    <>
-      {/* Side-by-side layout: Encrypt on the left, Decrypt on the right */}
-      <style>{`
-        .container.wide { max-width: 1200px; }
-        .split {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 24px;
-          align-items: start;
-          width: 100%;
-        }
-        .split > .card { min-width: 0; margin: 0; }
-        @media (max-width: 900px) {
-          .split { grid-template-columns: 1fr; }
-        }
-      `}</style>
-
-      {/* Header */}
-      <header className="site-header">
-        <div className="container header-inner">
-          <button
-            className="icon-btn"
-            type="button"
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-            aria-controls="menu"
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          </button>
-
-          <a className="brand" href="#top" aria-label="MarsCrypt home">
-            <span className="brand-logo">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="5" y="11" width="14" height="9" rx="2" />
-                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-              </svg>
-            </span>
-            <span className="brand-text">Mars<span>Crypt</span></span>
-          </a>
-
-          <a className="icon-btn" href={GITHUB} target="_blank" rel="noopener noreferrer" aria-label="UdaySharma937 on GitHub" title="GitHub">
-            <GithubIcon />
-          </a>
-        </div>
-      </header>
-
-      {/* Blurred backdrop + popup menu */}
-      <div className={"backdrop" + (menuOpen ? " open" : "")} onClick={close} />
-      <nav id="menu" className={"menu-popup" + (menuOpen ? " open" : "")} aria-label="Main menu" aria-hidden={!menuOpen}>
-        <div className="menu-head">
-          <span>Menu</span>
-          <button className="menu-close" type="button" aria-label="Close menu" onClick={close}>✕</button>
-        </div>
-        <a className="menu-link" href="#encrypt" onClick={close}><span className="mi">🔒</span><span>Encrypt &amp; Hide<small>Put a secret inside an image</small></span></a>
-        <a className="menu-link" href="#decrypt" onClick={close}><span className="mi">🔓</span><span>Extract &amp; Decrypt<small>Reveal a hidden message</small></span></a>
-        <a className="menu-link" href="#how" onClick={close}><span className="mi">🛰️</span><span>How it works<small>Security explained</small></span></a>
-        <div className="menu-divider" />
-        <a className="menu-link" href={GITHUB} target="_blank" rel="noopener noreferrer" onClick={close}><span className="mi">⭐</span><span>GitHub<small>github.com/UdaySharma937</small></span></a>
-      </nav>
-
-      <main>
-        <section className="container hero">
-          <span className="pill"><i /> AES-256 · PBKDF2 · LSB steganography</span>
-          <h1>Hide secrets in <span className="grad">plain sight</span></h1>
-          <p>Encrypt a message with your password, then bury it inside an ordinary picture. Nothing is stored on the server.</p>
-        </section>
-
-        <div className="container wide">
-          <div className="split">
-            {/* Left – Encrypt */}
-            <section className="card" id="encrypt">
-              <div className="card-head">
-                <span className="step">01</span>
-                <div>
-                  <h2>Encrypt &amp; Hide</h2>
-                  <p>Upload an image, add a password and your secret message.</p>
-                </div>
-              </div>
-
-              <form className="form" onSubmit={handleEncrypt} noValidate>
-                <div>
-                  <span className="field-label">Cover image</span>
-                  <Dropzone file={encFile} onFile={setEncFile} hint="PNG, JPG, BMP or WEBP · up to 4 MB" previewAlt="Selected cover image preview" />
-                </div>
-
-                <PasswordField id="encPass" label="Password" value={encPass} onChange={setEncPass} placeholder="At least 6 characters" autoComplete="new-password" />
-
-                <div className="field">
-                  <label htmlFor="encMsg">Secret message</label>
-                  <textarea
-                    className="textarea"
-                    id="encMsg"
-                    value={encMsg}
-                    maxLength={5000}
-                    onChange={(e) => setEncMsg(e.target.value)}
-                    placeholder="Type the message you want to hide…"
-                  />
-                  <small className="hint">{encMsg.length} / 5000</small>
-                </div>
-
-                <SubmitButton loading={encBusy} idle="Encrypt & Hide" busy="Encrypting…" />
-                {encError && <div className="alert error" role="alert">{encError}</div>}
-              </form>
-
-              {encUrl && (
-                <div className="result" ref={encResultRef}>
-                  <p className="result-title">✔ Your stego image is ready</p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={encUrl} alt="Generated stego image" />
-                  <a className="btn ghost" href={encUrl} download="marscrypt_stego.png">⬇ Download PNG</a>
-                  <small className="hint" style={{ textAlign: "left" }}>
-                    Share it as a file. Messengers that re-compress images will destroy the hidden data.
-                  </small>
-                </div>
-              )}
-            </section>
-
-            {/* Right – Decrypt */}
-            <section className="card" id="decrypt">
-              <div className="card-head">
-                <span className="step">02</span>
-                <div>
-                  <h2>Extract &amp; Decrypt</h2>
-                  <p>Upload a stego image and enter the password to reveal the message.</p>
-                </div>
-              </div>
-
-              <form className="form" onSubmit={handleDecrypt} noValidate>
-                <div>
-                  <span className="field-label">Stego image</span>
-                  <Dropzone file={decFile} onFile={setDecFile} hint="The PNG created by MarsCrypt" previewAlt="Selected stego image preview" />
-                </div>
-
-                <PasswordField id="decPass" label="Password" value={decPass} onChange={setDecPass} placeholder="The password used to encrypt" autoComplete="current-password" />
-
-                <SubmitButton loading={decBusy} idle="Extract & Decrypt" busy="Decrypting…" />
-                {decError && <div className="alert error" role="alert">{decError}</div>}
-              </form>
-
-              {decMessage !== null && (
-                <div className="result" ref={decResultRef}>
-                  <p className="result-title">✔ Message decrypted</p>
-                  <pre className="secret-box">{decMessage}</pre>
-                  <button className="btn ghost" type="button" onClick={copyMessage}>{copied ? "Copied ✔" : "Copy message"}</button>
-                </div>
-              )}
-            </section>
-          </div>
-        </div>
-
-        <section className="container how" id="how">
-          <h2>How it works</h2>
-          <div className="how-grid">
-            <article className="how-item"><h3>1 · Key derivation</h3><p>Your password and a random 16-byte salt go through PBKDF2-SHA256 (600,000 rounds) to make a 256-bit key.</p></article>
-            <article className="how-item"><h3>2 · AES-256 encryption</h3><p>The message is sealed with AES-256-GCM, so a wrong password or any tampering is detected.</p></article>
-            <article className="how-item"><h3>3 · LSB hiding</h3><p>Ciphertext bits replace the least significant bit of each colour value. The change is invisible to the eye.</p></article>
-          </div>
-        </section>
-      </main>
-
-      <footer className="site-footer">
-        Built by <a href={GITHUB} target="_blank" rel="noopener noreferrer">Uday Sharma</a> · MarsCrypt · No data is stored
-      </footer>
-    </>
-  );
+@media (prefers-reduced-motion: reduce) {
+  .mc-root *, .mc-root *::before, .mc-root *::after { animation: none !important; transition: none !important; }
 }
